@@ -1,19 +1,19 @@
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{Router};
+use tower_http::trace::TraceLayer;
 use std::net::SocketAddr;
+
+mod routes;
 
 #[tokio::main]
 async fn main() {
-    // Create a basic Axum router with a single GET route
-    let app = Router::new().route("/", get(|| async { "Hello, Bradley!" }));
+    // Initialize router
+    let app = Router::new()
+        .nest("/api/users", routes::user_routes::init_routes())
+        .layer(TraceLayer::new_for_http()); // Use TraceLayer for logging
 
-    // Define the server address
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Server running at http://{}", addr);
 
-    // Start the Axum server
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
